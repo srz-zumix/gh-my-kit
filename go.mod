@@ -3,8 +3,9 @@ module github.com/srz-zumix/gh-my-kit
 go 1.25.4
 
 require (
+	github.com/cli/go-gh/v2 v2.13.0
 	github.com/spf13/cobra v1.10.2
-	github.com/srz-zumix/go-gh-extension v0.3.18
+	github.com/srz-zumix/go-gh-extension v0.3.21
 )
 
 require (
@@ -15,6 +16,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
+	github.com/bradleyfalzon/ghinstallation/v2 v2.17.0 // indirect
 	github.com/briandowns/spinner v1.23.2 // indirect
 	github.com/catppuccin/go v0.3.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.1-0.20250623103423-23b8fd6302d7 // indirect
@@ -28,7 +30,6 @@ require (
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/cli/browser v1.3.0 // indirect
 	github.com/cli/cli/v2 v2.86.0 // indirect
-	github.com/cli/go-gh/v2 v2.13.0 // indirect
 	github.com/cli/safeexec v1.0.1 // indirect
 	github.com/cli/shurcooL-graphql v0.0.4 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
@@ -37,6 +38,10 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/fatih/color v1.18.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
+	github.com/google/go-github/v75 v75.0.0 // indirect
+	github.com/google/go-github/v79 v79.0.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/henvic/httpretty v0.1.4 // indirect
