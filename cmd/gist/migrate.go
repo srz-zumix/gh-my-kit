@@ -4,10 +4,8 @@ Copyright © 2025 srz_zumix
 package gist
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/cli/go-gh/v2/pkg/repository"
 	"github.com/spf13/cobra"
 	"github.com/srz-zumix/go-gh-extension/pkg/gh"
 	"github.com/srz-zumix/go-gh-extension/pkg/logger"
@@ -45,7 +43,39 @@ Examples:
     --src src.example.com --src-token <src-token> \
     --dst dst.example.com --dst-token <dst-token>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runMigrate(args, src, dst, srcToken, dstToken, dryrun)
+			ctx := cmd.Context()
+			srcClient, dstClient, err := newClientPair(ctx, src, dst, srcToken, dstToken)
+			if err != nil {
+				return err
+			}
+
+			gistIDs, err := resolveGistIDs(ctx, srcClient, args)
+			if err != nil {
+				return err
+			}
+
+			var migrated, failed int
+			for _, id := range gistIDs {
+				if dryrun {
+					logger.Info("[dryrun] would migrate", "id", id)
+					migrated++
+					continue
+				}
+				created, err := gh.MigrateGist(ctx, srcClient, dstClient, id)
+				if err != nil {
+					logger.Error("failed to migrate gist", "id", id, "error", err)
+					failed++
+					continue
+				}
+				logger.Info("migrated", "src", id, "dst", created.GetID())
+				migrated++
+			}
+
+			logger.Info("done", "migrated", migrated, "failed", failed)
+			if failed > 0 {
+				return fmt.Errorf("%d gist(s) failed to migrate", failed)
+			}
+			return nil
 		},
 	}
 
@@ -56,72 +86,4 @@ Examples:
 	cmd.Flags().BoolVarP(&dryrun, "dryrun", "n", false, "Dry run: show what would be migrated without making changes")
 
 	return cmd
-}
-
-func newClientForHost(host, token string) (*gh.GitHubClient, error) {
-	repo := repository.Repository{Host: host}
-	if token != "" {
-		return gh.NewGitHubClientWithToken(repo, token)
-	}
-	return gh.NewGitHubClientWithRepo(repo)
-}
-
-func runMigrate(args []string, src, dst, srcToken, dstToken string, dryrun bool) error {
-	ctx := context.Background()
-
-	srcClient, err := newClientForHost(src, srcToken)
-	if err != nil {
-		return fmt.Errorf("failed to create source client: %w", err)
-	}
-
-	dstClient, err := newClientForHost(dst, dstToken)
-	if err != nil {
-		return fmt.Errorf("failed to create destination client: %w", err)
-	}
-
-	srcUser, err := gh.GetLoginUser(ctx, srcClient)
-	if err != nil {
-		return fmt.Errorf("failed to get source user: %w", err)
-	}
-	dstUser, err := gh.GetLoginUser(ctx, dstClient)
-	if err != nil {
-		return fmt.Errorf("failed to get destination user: %w", err)
-	}
-	if srcClient.Host() == dstClient.Host() && srcUser.GetLogin() == dstUser.GetLogin() {
-		return fmt.Errorf("source and destination user must be different (%s@%s)", srcUser.GetLogin(), srcClient.Host())
-	}
-
-	gistIDs := args
-	if len(gistIDs) == 0 {
-		gists, err := gh.ListGists(ctx, srcClient)
-		if err != nil {
-			return fmt.Errorf("failed to list gists: %w", err)
-		}
-		for _, g := range gists {
-			gistIDs = append(gistIDs, g.GetID())
-		}
-	}
-
-	var migrated, failed int
-	for _, id := range gistIDs {
-		if dryrun {
-			logger.Info("[dryrun] would migrate", "id", id)
-			migrated++
-			continue
-		}
-		created, err := gh.MigrateGist(ctx, srcClient, dstClient, id)
-		if err != nil {
-			logger.Error("failed to migrate gist", "id", id, "error", err)
-			failed++
-			continue
-		}
-		logger.Info("migrated", "src", id, "dst", created.GetID())
-		migrated++
-	}
-
-	logger.Info("done", "migrated", migrated, "failed", failed)
-	if failed > 0 {
-		return fmt.Errorf("%d gist(s) failed to migrate", failed)
-	}
-	return nil
 }

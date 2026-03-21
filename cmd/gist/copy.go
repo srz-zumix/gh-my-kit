@@ -4,7 +4,6 @@ Copyright © 2025 srz_zumix
 package gist
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -44,7 +43,39 @@ Examples:
     --src src.example.com --src-token <src-token> \
     --dst dst.example.com --dst-token <dst-token>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCopy(args, src, dst, srcToken, dstToken, dryrun)
+			ctx := cmd.Context()
+			srcClient, dstClient, err := newClientPair(ctx, src, dst, srcToken, dstToken)
+			if err != nil {
+				return err
+			}
+
+			gistIDs, err := resolveGistIDs(ctx, srcClient, args)
+			if err != nil {
+				return err
+			}
+
+			var copied, failed int
+			for _, id := range gistIDs {
+				if dryrun {
+					logger.Info("[dryrun] would copy", "id", id)
+					copied++
+					continue
+				}
+				created, err := gh.CopyGist(ctx, srcClient, dstClient, id)
+				if err != nil {
+					logger.Error("failed to copy gist", "id", id, "error", err)
+					failed++
+					continue
+				}
+				logger.Info("copied", "src", id, "dst", created.GetID())
+				copied++
+			}
+
+			logger.Info("done", "copied", copied, "failed", failed)
+			if failed > 0 {
+				return fmt.Errorf("%d gist(s) failed to copy", failed)
+			}
+			return nil
 		},
 	}
 
@@ -55,64 +86,4 @@ Examples:
 	cmd.Flags().BoolVarP(&dryrun, "dryrun", "n", false, "Dry run: show what would be copied without making changes")
 
 	return cmd
-}
-
-func runCopy(args []string, src, dst, srcToken, dstToken string, dryrun bool) error {
-	ctx := context.Background()
-
-	srcClient, err := newClientForHost(src, srcToken)
-	if err != nil {
-		return fmt.Errorf("failed to create source client: %w", err)
-	}
-
-	dstClient, err := newClientForHost(dst, dstToken)
-	if err != nil {
-		return fmt.Errorf("failed to create destination client: %w", err)
-	}
-
-	srcUser, err := gh.GetLoginUser(ctx, srcClient)
-	if err != nil {
-		return fmt.Errorf("failed to get source user: %w", err)
-	}
-	dstUser, err := gh.GetLoginUser(ctx, dstClient)
-	if err != nil {
-		return fmt.Errorf("failed to get destination user: %w", err)
-	}
-	if srcClient.Host() == dstClient.Host() && srcUser.GetLogin() == dstUser.GetLogin() {
-		return fmt.Errorf("source and destination user must be different (%s@%s)", srcUser.GetLogin(), srcClient.Host())
-	}
-
-	gistIDs := args
-	if len(gistIDs) == 0 {
-		gists, err := gh.ListGists(ctx, srcClient)
-		if err != nil {
-			return fmt.Errorf("failed to list gists: %w", err)
-		}
-		for _, g := range gists {
-			gistIDs = append(gistIDs, g.GetID())
-		}
-	}
-
-	var copied, failed int
-	for _, id := range gistIDs {
-		if dryrun {
-			logger.Info("[dryrun] would copy", "id", id)
-			copied++
-			continue
-		}
-		created, err := gh.CopyGist(ctx, srcClient, dstClient, id)
-		if err != nil {
-			logger.Error("failed to copy gist", "id", id, "error", err)
-			failed++
-			continue
-		}
-		logger.Info("copied", "src", id, "dst", created.GetID())
-		copied++
-	}
-
-	logger.Info("done", "copied", copied, "failed", failed)
-	if failed > 0 {
-		return fmt.Errorf("%d gist(s) failed to copy", failed)
-	}
-	return nil
 }
