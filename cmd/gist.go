@@ -15,6 +15,7 @@ func NewGistCmd() *cobra.Command {
 		Long:  `Commands for managing GitHub Gists.`,
 	}
 
+	cmd.AddCommand(gist.NewConvertCmd())
 	cmd.AddCommand(gist.NewCopyCmd())
 	cmd.AddCommand(gist.NewMigrateCmd())
 
