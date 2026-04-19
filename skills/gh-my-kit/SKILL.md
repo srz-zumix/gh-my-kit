@@ -1,6 +1,11 @@
+---
+name: gh-my-kit
+description: gh-my-kit GitHub CLI extension for managing GitHub Gists — including converting gists to repositories, copying gist files across hosts, and migrating gist history between GitHub instances (github.com and GitHub Enterprise Server).
+---
+
 # gh-my-kit
 
-My personal [GitHub CLI](https://cli.github.com/) extension kit.
+Personal [GitHub CLI](https://cli.github.com/) extension kit for advanced gist management.
 
 ## Installation
 
@@ -8,37 +13,26 @@ My personal [GitHub CLI](https://cli.github.com/) extension kit.
 gh extension install srz-zumix/gh-my-kit
 ```
 
-## Shell Completion
-
-**Workaround Available!** While gh CLI doesn't natively support extension completion, we provide a patch script that enables it.
-
-**Prerequisites:** Before setting up gh-my-kit completion, ensure gh CLI completion is configured for your shell. See [gh completion documentation](https://cli.github.com/manual/gh_completion) for setup instructions.
-
-For detailed installation instructions and setup for each shell, see the [Shell Completion Guide](https://github.com/srz-zumix/go-gh-extension/blob/main/docs/shell-completion.md).
-
-## Agent Skills
-
-gh-my-kit bundles agent skills for AI. Use the `skills` subcommand to install and manage them.
-
-```sh
-gh my-kit skills [subcommand] [args...]
-```
-
-For details, see [Songmu/skillsmith](https://github.com/Songmu/skillsmith).
-
 ## Environment Variables
 
 | Variable | Description |
 |----------|-------------|
 | `GH_MY_KIT_NO_DOTENV` | Set to any non-empty value to disable automatic loading of the `.env` file |
 
+## CLI Structure
+
+```
+gh my-kit
+├── completion          # Shell completion scripts
+└── gist                # Gist management commands
+    ├── convert         # Convert gists to repositories
+    ├── copy            # Copy gists between hosts (file content only)
+    └── migrate         # Migrate gists between hosts (with git history)
+```
+
 ## Commands
 
-### `gist`
-
-Commands for managing GitHub Gists.
-
-#### `gist convert <gist-id...>`
+### gist convert
 
 Convert one or more gists to regular GitHub repositories, preserving the full git history via `git clone --mirror` + `git push --mirror`.
 
@@ -61,8 +55,6 @@ gh my-kit gist convert <gist-id...> [flags]
 | `--visibility <visibility>` | `-v` | inherit from gist | Visibility of the created repository (`public`, `private`, `internal`) |
 | `--no-rename-branch` | | false | Disable renaming the default branch from `master` to `main` |
 | `--dryrun` | `-n` | false | Show what would be converted without making changes |
-
-**Examples:**
 
 ```sh
 # Convert a gist to a repository (name derived from gist description)
@@ -87,7 +79,7 @@ gh my-kit gist convert abc123 --dryrun
 gh my-kit gist convert abc123 --no-rename-branch
 ```
 
-#### `gist copy [gist-id...]`
+### gist copy
 
 Copy gists from one GitHub host to another (latest file content only, no git history).
 
@@ -95,15 +87,13 @@ Copy gists from one GitHub host to another (latest file content only, no git his
 gh my-kit gist copy [gist-id...] [flags]
 ```
 
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--src <host>` | `-s` | Source GitHub host (default: current host from `gh auth`) |
-| `--dst <host>` | `-d` | Destination GitHub host (default: current host from `gh auth`) |
-| `--src-token <token>` | | Token for the source GitHub host |
-| `--dst-token <token>` | | Token for the destination GitHub host |
-| `--dryrun` | `-n` | Show what would be copied without making changes |
-
-**Examples:**
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--src <host>` | `-s` | current host from `gh auth` | Source GitHub host |
+| `--dst <host>` | `-d` | current host from `gh auth` | Destination GitHub host |
+| `--src-token <token>` | | | Token for the source GitHub host |
+| `--dst-token <token>` | | | Token for the destination GitHub host |
+| `--dryrun` | `-n` | false | Show what would be copied without making changes |
 
 ```sh
 # Copy all gists from github.com to a GHES instance
@@ -116,9 +106,12 @@ gh my-kit gist copy abc123 def456 --dst ghes.example.com --dst-token <token>
 gh my-kit gist copy \
   --src src.example.com --src-token <src-token> \
   --dst dst.example.com --dst-token <dst-token>
+
+# Dry run: show what would be copied without making changes
+gh my-kit gist copy --dst ghes.example.com --dryrun
 ```
 
-#### `gist migrate [gist-id...]`
+### gist migrate
 
 Migrate gists from one GitHub host to another, preserving the full git history via `git clone --mirror` + `git push --mirror`.
 
@@ -126,15 +119,13 @@ Migrate gists from one GitHub host to another, preserving the full git history v
 gh my-kit gist migrate [gist-id...] [flags]
 ```
 
-| Flag | Short | Description |
-| ------ | ------- | ------------- |
-| `--src <host>` | `-s` | Source GitHub host (default: current host from `gh auth`) |
-| `--dst <host>` | `-d` | Destination GitHub host (default: current host from `gh auth`) |
-| `--src-token <token>` | | Token for the source GitHub host |
-| `--dst-token <token>` | | Token for the destination GitHub host |
-| `--dryrun` | `-n` | Show what would be migrated without making changes |
-
-**Examples:**
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--src <host>` | `-s` | current host from `gh auth` | Source GitHub host |
+| `--dst <host>` | `-d` | current host from `gh auth` | Destination GitHub host |
+| `--src-token <token>` | | | Token for the source GitHub host |
+| `--dst-token <token>` | | | Token for the destination GitHub host |
+| `--dryrun` | `-n` | false | Show what would be migrated without making changes |
 
 ```sh
 # Migrate all gists from github.com to a GHES instance
@@ -147,19 +138,71 @@ gh my-kit gist migrate abc123 def456 --dst ghes.example.com --dst-token <token>
 gh my-kit gist migrate \
   --src src.example.com --src-token <src-token> \
   --dst dst.example.com --dst-token <dst-token>
+
+# Dry run: show what would be migrated without making changes
+gh my-kit gist migrate --dst ghes.example.com --dryrun
 ```
 
-> **copy vs migrate**
->
-> | | `gist copy` | `gist migrate` |
-> | - | ------------- | ---------------- |
-> | File content | ✅ | ✅ |
-> | Git history | ❌ | ✅ |
+### copy vs migrate
 
-### `completion`
+| | `gist copy` | `gist migrate` |
+|-|-------------|----------------|
+| File content | ✅ | ✅ |
+| Git history | ❌ | ✅ |
+
+### completion
 
 Generate shell completion scripts.
 
 ```sh
-gh my-kit completion --help
+gh my-kit completion -s bash  > ~/.gh-my-kit-complete.bash
+gh my-kit completion -s zsh   > ~/.gh-my-kit-complete.zsh
+gh my-kit completion -s fish  > ~/.gh-my-kit-complete.fish
 ```
+
+## Common Workflows
+
+### Migrate all gists to GitHub Enterprise Server
+
+```sh
+# Migrate all gists with full history
+gh my-kit gist migrate \
+  --dst ghes.example.com \
+  --dst-token <ghes-token>
+```
+
+### Convert a gist to an organization repository
+
+```sh
+# Convert gist to a private repository under an org
+gh my-kit gist convert abc123 \
+  --owner my-org \
+  --visibility private
+```
+
+### Cross-host full gist migration
+
+```sh
+# Full history migration between two GHES instances
+gh my-kit gist migrate \
+  --src src.example.com --src-token <src-token> \
+  --dst dst.example.com --dst-token <dst-token>
+```
+
+## Getting Help
+
+```sh
+# General help
+gh my-kit --help
+
+# Command help
+gh my-kit gist --help
+gh my-kit gist convert --help
+gh my-kit gist copy --help
+gh my-kit gist migrate --help
+```
+
+## References
+
+- Repository: https://github.com/srz-zumix/gh-my-kit
+- GitHub CLI Extensions: https://docs.github.com/en/github-cli/github-cli/using-github-cli-extensions
