@@ -84,12 +84,16 @@ func ConvertGistToRepo(ctx context.Context, src, dst *gh.GitHubClient, gistID st
 	private := !gistObj.GetPublic()
 	visibility := opts.Visibility
 	switch visibility {
+	case "":
+		// inherit from gist
 	case "public":
 		private = false
 	case "private":
 		private = true
 	case "internal":
 		private = true
+	default:
+		return nil, fmt.Errorf("invalid visibility %q: must be one of public, private, internal", visibility)
 	}
 
 	tmpDir, err := os.MkdirTemp("", "gh-my-kit-convert-*")
