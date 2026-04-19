@@ -79,11 +79,12 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVarP(&src, "src", "s", "", "Source GitHub host (default: current host from gh auth)")
-	cmd.Flags().StringVarP(&dst, "dst", "d", "", "Destination GitHub host (default: current host from gh auth)")
-	cmd.Flags().StringVar(&srcToken, "src-token", "", "Token for the source GitHub host")
-	cmd.Flags().StringVar(&dstToken, "dst-token", "", "Token for the destination GitHub host")
-	cmd.Flags().BoolVarP(&dryrun, "dryrun", "n", false, "Dry run: show what would be migrated without making changes")
+	f := cmd.Flags()
+	f.StringVarP(&src, "src", "s", "", "Source GitHub host (default: current host from gh auth)")
+	f.StringVarP(&dst, "dst", "d", "", "Destination GitHub host (default: current host from gh auth)")
+	f.StringVar(&srcToken, "src-token", "", "Token for the source GitHub host")
+	f.StringVar(&dstToken, "dst-token", "", "Token for the destination GitHub host")
+	f.BoolVarP(&dryrun, "dryrun", "n", false, "Dry run: show what would be migrated without making changes")
 
 	return cmd
 }
