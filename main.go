@@ -4,12 +4,16 @@ Copyright © 2025 srz_zumix
 package main
 
 import (
+	"embed"
 	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/srz-zumix/gh-my-kit/cmd"
 )
+
+//go:embed skills
+var skillsFS embed.FS
 
 func main() {
 	// Load .env file if present, unless GH_MY_KIT_NO_DOTENV is set.
@@ -19,5 +23,6 @@ func main() {
 			fmt.Fprintln(os.Stderr, "failed to load .env file:", err)
 		}
 	}
+	cmd.RegisterSkillsCmd(skillsFS)
 	cmd.Execute()
 }

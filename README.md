@@ -8,6 +8,24 @@ My personal [GitHub CLI](https://cli.github.com/) extension kit.
 gh extension install srz-zumix/gh-my-kit
 ```
 
+## Shell Completion
+
+**Workaround Available!** While gh CLI doesn't natively support extension completion, we provide a patch script that enables it.
+
+**Prerequisites:** Before setting up gh-my-kit completion, ensure gh CLI completion is configured for your shell. See [gh completion documentation](https://cli.github.com/manual/gh_completion) for setup instructions.
+
+For detailed installation instructions and setup for each shell, see the [Shell Completion Guide](https://github.com/srz-zumix/go-gh-extension/blob/main/docs/shell-completion.md).
+
+## Agent Skills
+
+gh-my-kit bundles agent skills for AI. Use the `skills` subcommand to install and manage them.
+
+```sh
+gh my-kit skills [subcommand] [args...]
+```
+
+For details, see [Songmu/skillsmith](https://github.com/Songmu/skillsmith).
+
 ## Environment Variables
 
 | Variable | Description |
@@ -28,12 +46,12 @@ The repository name is derived from the gist description (or the gist ID if the 
 The repository visibility defaults to the gist's own visibility (public/private).
 By default, the default branch is renamed from `master` to `main` after conversion.
 
-```
+```sh
 gh my-kit gist convert <gist-id...> [flags]
 ```
 
 | Flag | Short | Default | Description |
-|------|-------|---------|-------------|
+| ------ | ------- | --------- | ------------- |
 | `--src <host>` | `-s` | current host from `gh auth` | Source GitHub host where the gist resides |
 | `--src-token <token>` | | | Token for the source GitHub host |
 | `--dst <host>` | `-d` | current host from `gh auth` | Destination GitHub host where the repository will be created |
@@ -73,12 +91,12 @@ gh my-kit gist convert abc123 --no-rename-branch
 
 Copy gists from one GitHub host to another (latest file content only, no git history).
 
-```
+```sh
 gh my-kit gist copy [gist-id...] [flags]
 ```
 
 | Flag | Short | Description |
-|------|-------|-------------|
+| ------ | ------- | ------------- |
 | `--src <host>` | `-s` | Source GitHub host (default: current host from `gh auth`) |
 | `--dst <host>` | `-d` | Destination GitHub host (default: current host from `gh auth`) |
 | `--src-token <token>` | | Token for the source GitHub host |
@@ -104,12 +122,12 @@ gh my-kit gist copy \
 
 Migrate gists from one GitHub host to another, preserving the full git history via `git clone --mirror` + `git push --mirror`.
 
-```
+```sh
 gh my-kit gist migrate [gist-id...] [flags]
 ```
 
 | Flag | Short | Description |
-|------|-------|-------------|
+| ------ | ------- | ------------- |
 | `--src <host>` | `-s` | Source GitHub host (default: current host from `gh auth`) |
 | `--dst <host>` | `-d` | Destination GitHub host (default: current host from `gh auth`) |
 | `--src-token <token>` | | Token for the source GitHub host |
