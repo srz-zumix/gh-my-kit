@@ -47,9 +47,9 @@ gh my-kit gist convert <gist-id...> [flags]
 | Flag | Short | Default | Description |
 |------|-------|---------|-------------|
 | `--src <host>` | `-s` | current host from `gh auth` | Source GitHub host where the gist resides |
-| `--src-token <token>` | | | Token for the source GitHub host |
+| `--src-token <token>` | | | Token for the source GitHub host (optional if the source is the current `gh auth` host) |
 | `--dst <host>` | `-d` | current host from `gh auth` | Destination GitHub host where the repository will be created |
-| `--dst-token <token>` | | | Token for the destination GitHub host |
+| `--dst-token <token>` | | | Token for the destination GitHub host (optional if the destination is the current `gh auth` host) |
 | `--name <name>` | | derived from gist description | Repository name (only valid with a single gist ID) |
 | `--owner <owner>` | `-o` | authenticated user | Organization to create the repository under |
 | `--visibility <visibility>` | `-v` | inherit from gist | Visibility of the created repository (`public`, `private`, `internal`) |
@@ -70,7 +70,7 @@ gh my-kit gist convert abc123 --owner my-org
 gh my-kit gist convert abc123 def456
 
 # Convert a gist to a repository on a GHES instance
-gh my-kit gist convert abc123 --dst ghes.example.com --dst-token <token>
+gh my-kit gist convert abc123 --dst ghes.example.com --dst-token <dst-token>
 
 # Dry run: show what would be created without making changes
 gh my-kit gist convert abc123 --dryrun
@@ -82,6 +82,7 @@ gh my-kit gist convert abc123 --no-rename-branch
 ### gist copy
 
 Copy gists from one GitHub host to another (latest file content only, no git history).
+If `[gist-id...]` is omitted, all gists belonging to the authenticated user are copied.
 
 ```sh
 gh my-kit gist copy [gist-id...] [flags]
@@ -91,16 +92,16 @@ gh my-kit gist copy [gist-id...] [flags]
 |------|-------|---------|-------------|
 | `--src <host>` | `-s` | current host from `gh auth` | Source GitHub host |
 | `--dst <host>` | `-d` | current host from `gh auth` | Destination GitHub host |
-| `--src-token <token>` | | | Token for the source GitHub host |
-| `--dst-token <token>` | | | Token for the destination GitHub host |
+| `--src-token <token>` | | | Token for the source GitHub host (optional if the source is the current `gh auth` host) |
+| `--dst-token <token>` | | | Token for the destination GitHub host (optional if the destination is the current `gh auth` host) |
 | `--dryrun` | `-n` | false | Show what would be copied without making changes |
 
 ```sh
 # Copy all gists from github.com to a GHES instance
-gh my-kit gist copy --dst ghes.example.com --dst-token <token>
+gh my-kit gist copy --dst ghes.example.com --dst-token <dst-token>
 
 # Copy specific gists
-gh my-kit gist copy abc123 def456 --dst ghes.example.com --dst-token <token>
+gh my-kit gist copy abc123 def456 --dst ghes.example.com --dst-token <dst-token>
 
 # Copy between two GHES instances
 gh my-kit gist copy \
@@ -114,6 +115,7 @@ gh my-kit gist copy --dst ghes.example.com --dryrun
 ### gist migrate
 
 Migrate gists from one GitHub host to another, preserving the full git history via `git clone --mirror` + `git push --mirror`.
+If `[gist-id...]` is omitted, all gists belonging to the authenticated user are migrated.
 
 ```sh
 gh my-kit gist migrate [gist-id...] [flags]
@@ -123,16 +125,16 @@ gh my-kit gist migrate [gist-id...] [flags]
 |------|-------|---------|-------------|
 | `--src <host>` | `-s` | current host from `gh auth` | Source GitHub host |
 | `--dst <host>` | `-d` | current host from `gh auth` | Destination GitHub host |
-| `--src-token <token>` | | | Token for the source GitHub host |
-| `--dst-token <token>` | | | Token for the destination GitHub host |
+| `--src-token <token>` | | | Token for the source GitHub host (optional if the source is the current `gh auth` host) |
+| `--dst-token <token>` | | | Token for the destination GitHub host (optional if the destination is the current `gh auth` host) |
 | `--dryrun` | `-n` | false | Show what would be migrated without making changes |
 
 ```sh
 # Migrate all gists from github.com to a GHES instance
-gh my-kit gist migrate --dst ghes.example.com --dst-token <token>
+gh my-kit gist migrate --dst ghes.example.com --dst-token <dst-token>
 
 # Migrate specific gists
-gh my-kit gist migrate abc123 def456 --dst ghes.example.com --dst-token <token>
+gh my-kit gist migrate abc123 def456 --dst ghes.example.com --dst-token <dst-token>
 
 # Migrate between two GHES instances
 gh my-kit gist migrate \
@@ -168,7 +170,7 @@ gh my-kit completion -s fish  > ~/.gh-my-kit-complete.fish
 # Migrate all gists with full history
 gh my-kit gist migrate \
   --dst ghes.example.com \
-  --dst-token <ghes-token>
+  --dst-token <dst-token>
 ```
 
 ### Convert a gist to an organization repository
