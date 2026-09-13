@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/cli/cli/v2/git"
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v90/github"
 	"github.com/srz-zumix/go-gh-extension/pkg/gh"
 	"github.com/srz-zumix/go-gh-extension/pkg/logger"
 )
