@@ -61,3 +61,60 @@ func TestResolvePeriodFiscal(t *testing.T) {
 		t.Errorf("until = %q, want 2026-09-30", got)
 	}
 }
+
+func TestResolvePeriodUntilDateOnlyEndOfDay(t *testing.T) {
+	now := time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC)
+	since, until, err := ResolvePeriod("", "2024-01-01", "2024-03-31", now)
+	if err != nil {
+		t.Fatalf("ResolvePeriod returned unexpected error: %v", err)
+	}
+	// Date-only since stays at the start of the day.
+	wantSince := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	if !since.Equal(wantSince) {
+		t.Errorf("since = %v, want %v", since, wantSince)
+	}
+	// Date-only until is extended to the last instant of the day.
+	wantUntil := time.Date(2024, 3, 31, 23, 59, 59, int(time.Second-time.Nanosecond), time.UTC)
+	if !until.Equal(wantUntil) {
+		t.Errorf("until = %v, want %v", until, wantUntil)
+	}
+	// The formatted search range keeps the same calendar day.
+	if got := until.Format(dateLayout); got != "2024-03-31" {
+		t.Errorf("until date = %q, want 2024-03-31", got)
+	}
+}
+
+func TestResolvePeriodUntilRFC3339NotExtended(t *testing.T) {
+	now := time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC)
+	_, until, err := ResolvePeriod("", "", "2024-03-31T00:00:00Z", now)
+	if err != nil {
+		t.Fatalf("ResolvePeriod returned unexpected error: %v", err)
+	}
+	// An explicit RFC3339 instant is used as-is, not extended to end of day.
+	wantUntil := time.Date(2024, 3, 31, 0, 0, 0, 0, time.UTC)
+	if !until.Equal(wantUntil) {
+		t.Errorf("until = %v, want %v", until, wantUntil)
+	}
+}
+
+func TestResolvePeriodSameDayDateOnly(t *testing.T) {
+	now := time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC)
+	since, until, err := ResolvePeriod("", "2024-03-31", "2024-03-31", now)
+	if err != nil {
+		t.Fatalf("ResolvePeriod returned unexpected error for same-day range: %v", err)
+	}
+	if !since.Before(until) {
+		t.Errorf("expected since %v before until %v", since, until)
+	}
+}
+
+func TestResolvePeriodNoUntilKeepsNow(t *testing.T) {
+	now := time.Date(2024, 6, 15, 12, 30, 0, 0, time.UTC)
+	_, until, err := ResolvePeriod("", "2024-01-01", "", now)
+	if err != nil {
+		t.Fatalf("ResolvePeriod returned unexpected error: %v", err)
+	}
+	if !until.Equal(now) {
+		t.Errorf("until = %v, want %v", until, now)
+	}
+}

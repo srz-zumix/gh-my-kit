@@ -14,15 +14,23 @@ var dateLayouts = []string{time.RFC3339, "2006-01-02"}
 
 // ParseTimeFlag parses a --since/--until value in RFC3339 or YYYY-MM-DD format.
 func ParseTimeFlag(value string) (time.Time, error) {
+	t, _, err := parseTimeFlag(value)
+	return t, err
+}
+
+// parseTimeFlag parses a --since/--until value and reports whether it matched
+// the date-only (YYYY-MM-DD) layout, which callers use to treat the value as a
+// whole calendar day rather than an instant at midnight.
+func parseTimeFlag(value string) (time.Time, bool, error) {
 	var lastErr error
 	for _, layout := range dateLayouts {
 		t, err := time.Parse(layout, value)
 		if err == nil {
-			return t, nil
+			return t, layout == "2006-01-02", nil
 		}
 		lastErr = err
 	}
-	return time.Time{}, fmt.Errorf("invalid time %q: expected RFC3339 or YYYY-MM-DD: %w", value, lastErr)
+	return time.Time{}, false, fmt.Errorf("invalid time %q: expected RFC3339 or YYYY-MM-DD: %w", value, lastErr)
 }
 
 // ParsePeriod parses a relative period such as "7d", "3w", "6m" or "1y" into a
@@ -126,9 +134,14 @@ func ResolvePeriod(period, since, until string, now time.Time) (time.Time, time.
 		start = t
 	}
 	if until != "" {
-		t, err := ParseTimeFlag(until)
+		t, dateOnly, err := parseTimeFlag(until)
 		if err != nil {
 			return time.Time{}, time.Time{}, err
+		}
+		if dateOnly {
+			// A date-only upper bound is inclusive of the whole calendar day,
+			// so extend it to the last instant of that day.
+			t = t.AddDate(0, 0, 1).Add(-time.Nanosecond)
 		}
 		end = t
 	}

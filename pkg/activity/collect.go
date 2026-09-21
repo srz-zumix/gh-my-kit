@@ -73,9 +73,17 @@ func Collect(ctx context.Context, g *extgh.GitHubClient, opts Options) (*Result,
 		}
 	}
 
-	if hasKind(opts.Kinds, KindGists) && opts.Self {
+	if hasKind(opts.Kinds, KindGists) {
 		logger.Info("collecting gists", "user", opts.Username)
-		gists, err := extgh.ListGists(ctx, g)
+		var gists []*github.Gist
+		var err error
+		if opts.Self {
+			// Empty username lists the authenticated user's gists, including secret ones.
+			gists, err = extgh.ListGists(ctx, g)
+		} else {
+			// Username-scoped listing returns the target user's public gists.
+			gists, err = g.ListGists(ctx, opts.Username)
+		}
 		if err != nil {
 			res.warn("failed to list gists for '%s': %v", opts.Username, err)
 		} else {
@@ -281,7 +289,7 @@ func Collect(ctx context.Context, g *extgh.GitHubClient, opts Options) (*Result,
 
 	if hasKind(opts.Kinds, KindProjects) {
 		logger.Info("collecting projects", "user", opts.Username)
-		owners := projectOwners(res, opts)
+		owners := projectOwners(ctx, g, res, opts)
 		projectCount := 0
 		for _, owner := range owners {
 			projects, err := extgh.ListProjectsV2(ctx, g, owner)
@@ -370,9 +378,21 @@ func collectComments(ctx context.Context, g *extgh.GitHubClient, res *Result, op
 
 // projectOwners returns the set of owners (the user plus any organizations
 // they belong to) to query for ProjectV2s.
-func projectOwners(res *Result, opts Options) []string {
+func projectOwners(ctx context.Context, g *extgh.GitHubClient, res *Result, opts Options) []string {
 	owners := []string{opts.Username}
-	for _, org := range res.Orgs {
+	orgs := res.Orgs
+	if !hasKind(opts.Kinds, KindOrgs) {
+		// Organizations were not collected as their own kind, so fetch the
+		// membership list independently to include projects owned by the
+		// user's organizations.
+		fetched, err := extgh.ListUserOrganizations(ctx, g, opts.Username)
+		if err != nil {
+			res.warn("failed to list organizations for project discovery for '%s': %v", opts.Username, err)
+		} else {
+			orgs = fetched
+		}
+	}
+	for _, org := range orgs {
 		if login := org.GetLogin(); login != "" {
 			owners = append(owners, login)
 		}

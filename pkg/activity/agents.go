@@ -85,7 +85,8 @@ func RenderAgentsGuide(r *Result, mode Mode, kinds []Kind, skipEmpty bool) strin
 	b.WriteString("## Caveats\n\n")
 	fmt.Fprintf(&b, "- %s are snapshots of the current state. GitHub does not expose when those relationships were created, so they are **not** limited to the period above.\n", quotedKindList(snapshotKinds))
 	b.WriteString("- Every other kind is limited to the period above.\n")
-	b.WriteString("- `gists`, `watching` and `notifications` are only available for the authenticated user; for any other user they are skipped.\n")
+	b.WriteString("- `watching` and `notifications` are only available for the authenticated user; for any other user they are skipped.\n")
+	b.WriteString("- `gists` includes secret gists only for the authenticated user; for any other user only public gists are collected.\n")
 	fmt.Fprintf(&b, "- `comments` is collected from at most %d matched issues/pull requests, so it can be incomplete for very active users.\n", maxCommentIssues)
 	b.WriteString("- A count of `0` means nothing was collected, which may be a collection failure rather than an absence of activity. Check the `Warnings` section of `summary.md` before concluding that a kind is empty.\n")
 
