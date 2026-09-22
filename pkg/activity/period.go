@@ -124,15 +124,7 @@ func ResolvePeriod(period, since, until string, now time.Time) (time.Time, time.
 		return ParsePeriod(period, now)
 	}
 
-	start := now.AddDate(0, 0, -30)
 	end := now
-	if since != "" {
-		t, err := ParseTimeFlag(since)
-		if err != nil {
-			return time.Time{}, time.Time{}, err
-		}
-		start = t
-	}
 	if until != "" {
 		t, dateOnly, err := parseTimeFlag(until)
 		if err != nil {
@@ -144,6 +136,18 @@ func ResolvePeriod(period, since, until string, now time.Time) (time.Time, time.
 			t = t.AddDate(0, 0, 1).Add(-time.Nanosecond)
 		}
 		end = t
+	}
+
+	// The default 30-day window is relative to the resolved end, so an
+	// explicit --until in the past is not rejected just because it predates
+	// "now minus 30 days".
+	start := end.AddDate(0, 0, -30)
+	if since != "" {
+		t, err := ParseTimeFlag(since)
+		if err != nil {
+			return time.Time{}, time.Time{}, err
+		}
+		start = t
 	}
 	if !start.Before(end) {
 		return time.Time{}, time.Time{}, errors.New("--since must be before --until")
