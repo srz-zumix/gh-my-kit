@@ -34,6 +34,67 @@ For details, see [Songmu/skillsmith](https://github.com/Songmu/skillsmith).
 
 ## Commands
 
+### `activity [user]`
+
+Collect a GitHub user's activity (profile, followers/following, organizations, events, contributions, pull requests, issues, reviews, comments, repositories, starred/watched repositories, gists, packages, projects, discussions, and notifications) and write it to a directory as Markdown and JSON files, one pair per activity kind. The Markdown files are a condensed, human readable list, while the JSON files keep every field returned by the GitHub API.
+
+Data scoped to a repository owner (events, contributions, pulls, issues, reviews, comments, repos, packages, projects, discussions) is grouped under `<output>/<owner>/`. Data that is not owner-scoped (profile, followers, following, orgs, gists, starred, watching, notifications) is written directly under `<output>/`. A `summary.md` overview listing counts per kind and an `AGENTS.md` guide describing the output layout, the meaning of each file and the collection caveats for AI agents are always written at the top of `<output>/`.
+
+If no user is given, the authenticated user is used. Notifications, private events, and watched repositories are only available for the authenticated user and are skipped with a warning when a different user is specified.
+
+The command fails when the output directory already contains files. Pass `--force` to empty the directory before writing.
+
+`--period`/`--since`/`--until` bound events, contributions, pull requests, issues, reviews, comments, gists (by creation date), and starred repositories (by star date). Followers, following, organizations, and watched repositories are always the current list, since GitHub does not expose when those relationships were created.
+
+```sh
+gh my-kit activity [user] [flags]
+```
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--host <host>` | | current host from `gh auth` | GitHub host to query |
+| `--output <dir>` | `-o` | `./activity-<user>-<YYYYMMDD>` | Output directory |
+| `--mode <summary\|detail>` | | `detail` | Markdown detail level: `detail` renders each record as a section with its date, link and body text (issue/PR/comment bodies, descriptions); `summary` renders one titled link per record |
+| `--period <N>d\|w\|m\|y` | | `30d` | Period to collect: relative (`30d`, `4w`, `6m`, `1y`) or a fiscal year (`FY26`, `FY26H1`, `FY26Q1`..`FY26Q4`; fiscal year starts in April); mutually exclusive with `--since`/`--until` |
+| `--since <date>` | | | Collect activity since this date (RFC3339 or `YYYY-MM-DD`); mutually exclusive with `--period` |
+| `--until <date>` | | | Collect activity until this date (RFC3339 or `YYYY-MM-DD`); mutually exclusive with `--period` |
+| `--include <kind,...>` | | all kinds | Only collect these activity kinds; mutually exclusive with `--exclude` |
+| `--exclude <kind,...>` | | | Exclude these activity kinds; mutually exclusive with `--include` |
+| `--skip-empty` | | `false` | Do not write output files for activity kinds with no collected data |
+| `--force` | | `false` | Empty the output directory before writing instead of failing when it is not empty |
+| `--format json` | | | Print the full collected result as JSON to stdout instead of writing files |
+
+**Examples:**
+
+```sh
+# Dump the authenticated user's activity for the last 30 days
+gh my-kit activity
+
+# Dump another user's activity for the last year, as a condensed link list
+gh my-kit activity octocat --period 1y --mode summary
+
+# Dump activity for a fiscal year (April 2026 - March 2027)
+gh my-kit activity octocat --period FY26
+
+# Dump activity for the first half of a fiscal year (April - September 2026)
+gh my-kit activity octocat --period FY26H1
+
+# Dump activity for a specific date range to a custom directory
+gh my-kit activity octocat --since 2024-01-01 --until 2024-03-31 --output ./out
+
+# Skip files for activity kinds that collected no data
+gh my-kit activity octocat --skip-empty
+
+# Overwrite an existing output directory
+gh my-kit activity octocat --output ./out --force
+
+# Only collect pull requests and issues
+gh my-kit activity octocat --include pulls,issues
+
+# Print the full result as JSON instead of writing files
+gh my-kit activity octocat --format json
+```
+
 ### `gist`
 
 Commands for managing GitHub Gists.

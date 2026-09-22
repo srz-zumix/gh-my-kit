@@ -1,11 +1,11 @@
 ---
 name: gh-my-kit
-description: gh-my-kit GitHub CLI extension for managing GitHub Gists — including converting gists to repositories, copying gist files across hosts, and migrating gist history between GitHub instances (github.com and GitHub Enterprise Server).
+description: gh-my-kit GitHub CLI extension for managing GitHub Gists (converting gists to repositories, copying gist files across hosts, and migrating gist history between GitHub instances) and for dumping a GitHub user's activity to Markdown/JSON files.
 ---
 
 # gh-my-kit
 
-Personal [GitHub CLI](https://cli.github.com/) extension kit for advanced gist management.
+Personal [GitHub CLI](https://cli.github.com/) extension kit for advanced gist management and user activity dumps.
 
 ## Installation
 
@@ -23,6 +23,7 @@ gh extension install srz-zumix/gh-my-kit
 
 ```
 gh my-kit
+├── activity            # Dump a user's GitHub activity to Markdown/JSON files
 ├── completion          # Shell completion scripts
 └── gist                # Gist management commands
     ├── convert         # Convert gists to repositories
@@ -31,6 +32,50 @@ gh my-kit
 ```
 
 ## Commands
+
+### activity
+
+Collect a GitHub user's activity (profile, followers/following, organizations, events, contributions, pull requests, issues, reviews, comments, repositories, starred/watched repositories, gists, packages, projects, discussions, and notifications) and write it to a directory as Markdown and JSON files, one pair per activity kind. The Markdown files are a condensed, human readable list, while the JSON files keep every field returned by the GitHub API.
+
+Owner-scoped data (events, contributions, pulls, issues, reviews, comments, repos, packages, projects, discussions) is grouped under `<output>/<owner>/`. Non owner-scoped data (profile, followers, following, orgs, gists, starred, watching, notifications) is written under `<output>/`. A `summary.md` overview and an `AGENTS.md` guide describing the output layout and caveats for AI agents are always written at the top of `<output>/`.
+
+If no user is given, the authenticated user is used. Notifications, private events, and watched repositories are only available for the authenticated user and are skipped with a warning otherwise.
+
+The command fails when the output directory already contains files. Pass `--force` to empty the directory before writing.
+
+`--period`/`--since`/`--until` bound events, contributions, pulls, issues, reviews, comments, gists (by creation date), and starred repositories (by star date). Followers, following, organizations, and watched repositories are always the current list, since GitHub does not expose when those relationships were created.
+
+```sh
+gh my-kit activity [user] [flags]
+```
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--host <host>` | | current host from `gh auth` | GitHub host to query |
+| `--output <dir>` | `-o` | `./activity-<user>-<YYYYMMDD>` | Output directory |
+| `--mode <summary\|detail>` | | `detail` | Markdown detail level: `detail` renders each record as a section with its date, link and body text; `summary` renders one titled link per record |
+| `--period <N>d\|w\|m\|y` | | `30d` | Period to collect: relative (`30d`, `4w`, `6m`, `1y`) or a fiscal year (`FY26`, `FY26H1`, `FY26Q1`..`FY26Q4`; fiscal year starts in April) |
+| `--since <date>` | | | Collect activity since this date (RFC3339 or `YYYY-MM-DD`) |
+| `--until <date>` | | | Collect activity until this date (RFC3339 or `YYYY-MM-DD`) |
+| `--include <kind,...>` | | all kinds | Only collect these activity kinds |
+| `--exclude <kind,...>` | | | Exclude these activity kinds |
+| `--skip-empty` | | `false` | Do not write output files for activity kinds with no collected data |
+| `--force` | | `false` | Empty the output directory before writing instead of failing when it is not empty |
+| `--format json` | | | Print the full result as JSON to stdout instead of writing files |
+
+```sh
+# Dump the authenticated user's activity for the last 30 days
+gh my-kit activity
+
+# Dump another user's activity for the last year, as a condensed link list
+gh my-kit activity octocat --period 1y --mode summary
+
+# Dump activity for a fiscal year (April 2026 - March 2027)
+gh my-kit activity octocat --period FY26
+
+# Only collect pull requests and issues, printed as JSON
+gh my-kit activity octocat --include pulls,issues --format json
+```
 
 ### gist convert
 
