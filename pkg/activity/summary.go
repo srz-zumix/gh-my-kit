@@ -332,12 +332,6 @@ var rootKinds = []Kind{
 	KindGists, KindStarred, KindWatching, KindNotifications,
 }
 
-// ownerScopedKinds are kinds that are grouped per repository owner.
-var ownerScopedKinds = []Kind{
-	KindEvents, KindContributions, KindPulls, KindIssues, KindReviews,
-	KindComments, KindRepos, KindPackages, KindProjects, KindDiscussions,
-}
-
 // isRootKind reports whether kind is rendered at the root of the output
 // directory rather than grouped per owner.
 func isRootKind(kind Kind) bool {

@@ -27,9 +27,22 @@ var kindDescriptions = map[Kind]string{
 	KindNotifications: "Notifications updated in the period.",
 }
 
-// snapshotKinds are kinds GitHub only exposes as a current state, with no
-// creation timestamp, so they cannot be limited to the collected period.
-var snapshotKinds = []Kind{KindFollowers, KindFollowing, KindOrgs, KindWatching}
+// periodBoundedKinds are limited to [Since, Until]: each record carries a
+// timestamp (created/updated/starred) that the collector filters on.
+var periodBoundedKinds = []Kind{
+	KindEvents, KindContributions, KindPulls, KindIssues, KindReviews,
+	KindComments, KindGists, KindStarred, KindNotifications,
+}
+
+// unboundedKinds reflect the current state and are NOT limited to the period,
+// because GitHub does not expose a usable timestamp for the collector to filter
+// on. This covers snapshot relationships (followers/following/orgs/watching),
+// the profile, and owner-scoped listings the collector does not date-filter
+// (repos/packages/projects/discussions).
+var unboundedKinds = []Kind{
+	KindProfile, KindFollowers, KindFollowing, KindOrgs, KindWatching,
+	KindRepos, KindPackages, KindProjects, KindDiscussions,
+}
 
 // RenderAgentsGuide renders an AGENTS.md that explains the layout and the
 // meaning of the dumped files to an AI agent reading the output directory.
@@ -83,8 +96,8 @@ func RenderAgentsGuide(r *Result, mode Mode, kinds []Kind, skipEmpty bool) strin
 	}
 
 	b.WriteString("## Caveats\n\n")
-	fmt.Fprintf(&b, "- %s are snapshots of the current state. GitHub does not expose when those relationships were created, so they are **not** limited to the period above.\n", quotedKindList(snapshotKinds))
-	b.WriteString("- Every other kind is limited to the period above.\n")
+	fmt.Fprintf(&b, "- These kinds are limited to the period above: %s.\n", quotedKindList(periodBoundedKinds))
+	fmt.Fprintf(&b, "- These kinds reflect the current state and are **not** limited to the period above, because GitHub does not expose a usable timestamp for them: %s.\n", quotedKindList(unboundedKinds))
 	b.WriteString("- `watching` and `notifications` are only available for the authenticated user; for any other user they are skipped.\n")
 	b.WriteString("- `gists` includes secret gists only for the authenticated user; for any other user only public gists are collected.\n")
 	fmt.Fprintf(&b, "- `comments` is collected from at most %d matched issues/pull requests, so it can be incomplete for very active users.\n", maxCommentIssues)

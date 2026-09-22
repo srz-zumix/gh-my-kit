@@ -139,8 +139,16 @@ func Collect(ctx context.Context, g *extgh.GitHubClient, opts Options) (*Result,
 			if err != nil {
 				res.warn("failed to list notifications for '%s': %v", opts.Username, err)
 			} else {
-				res.Notifications = notifications
-				logger.Info("collected notifications", "count", len(notifications))
+				// The API only enforces the "since" lower bound, so filter the
+				// upper bound here to keep notifications within [Since, Until].
+				for _, n := range notifications {
+					updatedAt := n.GetUpdatedAt().Time
+					if updatedAt.Before(opts.Since) || updatedAt.After(opts.Until) {
+						continue
+					}
+					res.Notifications = append(res.Notifications, n)
+				}
+				logger.Info("collected notifications", "count", len(res.Notifications))
 			}
 		} else {
 			res.warn("skipped notifications: only available for the authenticated user")
@@ -260,7 +268,11 @@ func Collect(ctx context.Context, g *extgh.GitHubClient, opts Options) (*Result,
 
 	if hasKind(opts.Kinds, KindComments) {
 		logger.Info("collecting comments", "user", opts.Username)
-		query := fmt.Sprintf("commenter:%s updated:%s", opts.Username, dateRange)
+		// "updated:" filters on the issue/PR timestamp, not the comment's. Only
+		// bound it from below so an issue holding an in-window comment is not
+		// dropped when later activity moves its updated_at past Until; the exact
+		// [Since, Until] boundary is enforced per comment in collectComments.
+		query := fmt.Sprintf("commenter:%s updated:>=%s", opts.Username, opts.Since.Format(dateLayout))
 		commented, err := g.SearchIssues(ctx, query)
 		if err != nil {
 			res.warn("failed to search issues commented on by '%s': %v", opts.Username, err)
