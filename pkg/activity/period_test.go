@@ -3,6 +3,8 @@ package activity
 import (
 	"testing"
 	"time"
+
+	"github.com/srz-zumix/go-gh-extension/pkg/parser"
 )
 
 func TestParseFiscalPeriod(t *testing.T) {
@@ -28,7 +30,7 @@ func TestParseFiscalPeriod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			since, until, err := ParseFiscalPeriod(tt.period)
+			since, until, err := parser.ParseFiscalPeriod(tt.period)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("ParseFiscalPeriod(%q) expected an error, got none", tt.period)

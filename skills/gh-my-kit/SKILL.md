@@ -1,11 +1,11 @@
 ---
 name: gh-my-kit
-description: gh-my-kit GitHub CLI extension for managing GitHub Gists (converting gists to repositories, copying gist files across hosts, and migrating gist history between GitHub instances) and for dumping a GitHub user's activity to Markdown/JSON files.
+description: gh-my-kit GitHub CLI extension for managing GitHub Gists (converting gists to repositories, copying gist files across hosts, and migrating gist history between GitHub instances), copying a user profile across hosts, and for dumping a GitHub user's activity to Markdown/JSON files.
 ---
 
 # gh-my-kit
 
-Personal [GitHub CLI](https://cli.github.com/) extension kit for advanced gist management and user activity dumps.
+Personal [GitHub CLI](https://cli.github.com/) extension kit for advanced gist management, cross-host profile copying, and user activity dumps.
 
 ## Installation
 
@@ -25,10 +25,12 @@ gh extension install srz-zumix/gh-my-kit
 gh my-kit
 ├── activity            # Dump a user's GitHub activity to Markdown/JSON files
 ├── completion          # Shell completion scripts
-└── gist                # Gist management commands
-    ├── convert         # Convert gists to repositories
-    ├── copy            # Copy gists between hosts (file content only)
-    └── migrate         # Migrate gists between hosts (with git history)
+├── gist                # Gist management commands
+│   ├── convert         # Convert gists to repositories
+│   ├── copy            # Copy gists between hosts (file content only)
+│   └── migrate         # Migrate gists between hosts (with git history)
+└── profile             # Profile management commands
+    └── copy            # Copy a user profile between hosts
 ```
 
 ## Commands
@@ -197,6 +199,41 @@ gh my-kit gist migrate --dst ghes.example.com --dryrun
 | File content | ✅ | ✅ |
 | Git history | ❌ | ✅ |
 
+### profile copy
+
+Copy the authenticated source user's profile fields and social accounts to the authenticated destination user.
+
+Fields left empty on the source are skipped, preserving the destination's existing value. Social accounts present on the source but missing on the destination are added; existing destination social accounts are left as-is.
+
+```sh
+gh my-kit profile copy [flags]
+```
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--src <host>` | `-s` | current host from `gh auth` | Source GitHub host |
+| `--dst <host>` | `-d` | current host from `gh auth` | Destination GitHub host |
+| `--src-token <token>` | | | Token for the source GitHub host (optional if the source is the current `gh auth` host) |
+| `--dst-token <token>` | | | Token for the destination GitHub host (optional if the destination is the current `gh auth` host) |
+| `--fields <list>` | | all fields | Comma-separated fields to copy: `name,bio,company,location,blog,twitter_username,hireable,social_accounts` |
+| `--dryrun` | `-n` | false | Show what would be copied without making changes |
+
+```sh
+# Copy all profile fields and social accounts to a GHES instance
+gh my-kit profile copy --dst ghes.example.com --dst-token <dst-token>
+
+# Copy only name and bio
+gh my-kit profile copy --dst ghes.example.com --dst-token <dst-token> --fields name,bio
+
+# Copy between two GHES instances
+gh my-kit profile copy \
+  --src src.example.com --src-token <src-token> \
+  --dst dst.example.com --dst-token <dst-token>
+
+# Dry run: show what would be copied without making changes
+gh my-kit profile copy --dst ghes.example.com --dryrun
+```
+
 ### completion
 
 Generate shell completion scripts.
@@ -236,6 +273,15 @@ gh my-kit gist migrate \
   --dst dst.example.com --dst-token <dst-token>
 ```
 
+### Migrate a user profile to GitHub Enterprise Server
+
+```sh
+# Copy the authenticated user's profile and social accounts
+gh my-kit profile copy \
+  --dst ghes.example.com \
+  --dst-token <dst-token>
+```
+
 ## Getting Help
 
 ```sh
@@ -247,6 +293,8 @@ gh my-kit gist --help
 gh my-kit gist convert --help
 gh my-kit gist copy --help
 gh my-kit gist migrate --help
+gh my-kit profile --help
+gh my-kit profile copy --help
 ```
 
 ## References

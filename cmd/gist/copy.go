@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/srz-zumix/gh-my-kit/cmd/common"
 	"github.com/srz-zumix/go-gh-extension/pkg/gh"
 	"github.com/srz-zumix/go-gh-extension/pkg/logger"
 )
@@ -44,7 +45,7 @@ Examples:
     --dst dst.example.com --dst-token <dst-token>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			srcClient, dstClient, err := newClientPair(ctx, src, dst, srcToken, dstToken)
+			srcClient, dstClient, err := common.NewClientPair(ctx, src, dst, srcToken, dstToken)
 			if err != nil {
 				return err
 			}
