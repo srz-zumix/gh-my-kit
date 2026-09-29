@@ -120,3 +120,23 @@ func TestResolvePeriodNoUntilKeepsNow(t *testing.T) {
 		t.Errorf("until = %v, want %v", until, now)
 	}
 }
+
+func TestResolvePeriodRelativeDaysAcrossDST(t *testing.T) {
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Skipf("timezone data unavailable: %v", err)
+	}
+	// 2024-03-11 is the day after the US spring-forward DST transition.
+	now := time.Date(2024, 3, 11, 9, 0, 0, 0, loc)
+	since, _, err := ResolvePeriod("1d", "", "", now)
+	if err != nil {
+		t.Fatalf("ResolvePeriod returned unexpected error: %v", err)
+	}
+	// Calendar-day semantics keep the same wall-clock hour despite DST.
+	if since.Hour() != now.Hour() {
+		t.Errorf("since hour = %d, want %d (same wall-clock hour across DST)", since.Hour(), now.Hour())
+	}
+	if want := now.AddDate(0, 0, -1); !since.Equal(want) {
+		t.Errorf("since = %v, want %v", since, want)
+	}
+}

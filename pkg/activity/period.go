@@ -47,7 +47,11 @@ func ResolvePeriod(period, since, until string, now time.Time) (time.Time, time.
 		if err != nil {
 			return time.Time{}, time.Time{}, err
 		}
-		return now.Add(-duration), now, nil
+		// parser.ParsePeriod returns whole-day multiples; convert back to
+		// calendar days and use AddDate so the window keeps the same
+		// wall-clock time across daylight-saving transitions.
+		days := int(duration / (24 * time.Hour))
+		return now.AddDate(0, 0, -days), now, nil
 	}
 
 	end := now

@@ -61,32 +61,33 @@ func BuildUpdateRequest(src *github.User, fields []string) (*github.User, []stri
 	for _, f := range fields {
 		switch Field(f) {
 		case FieldName:
-			if src.Name != nil {
+			// Skip empty source strings so the destination value is preserved.
+			if src.Name != nil && src.GetName() != "" {
 				req.Name = src.Name
 				changed = append(changed, f)
 			}
 		case FieldBio:
-			if src.Bio != nil {
+			if src.Bio != nil && src.GetBio() != "" {
 				req.Bio = src.Bio
 				changed = append(changed, f)
 			}
 		case FieldCompany:
-			if src.Company != nil {
+			if src.Company != nil && src.GetCompany() != "" {
 				req.Company = src.Company
 				changed = append(changed, f)
 			}
 		case FieldLocation:
-			if src.Location != nil {
+			if src.Location != nil && src.GetLocation() != "" {
 				req.Location = src.Location
 				changed = append(changed, f)
 			}
 		case FieldBlog:
-			if src.Blog != nil {
+			if src.Blog != nil && src.GetBlog() != "" {
 				req.Blog = src.Blog
 				changed = append(changed, f)
 			}
 		case FieldTwitterUsername:
-			if src.TwitterUsername != nil {
+			if src.TwitterUsername != nil && src.GetTwitterUsername() != "" {
 				req.TwitterUsername = src.TwitterUsername
 				changed = append(changed, f)
 			}

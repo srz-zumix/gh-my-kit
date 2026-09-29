@@ -48,11 +48,11 @@ func TestBuildUpdateRequest(t *testing.T) {
 	if req.Company != nil {
 		t.Errorf("Company should stay nil, got %q", req.GetCompany())
 	}
-	if req.Location == nil || req.GetLocation() != "" {
-		t.Errorf("Location should be copied as empty string, got %v", req.Location)
+	if req.Location != nil {
+		t.Errorf("empty Location should be skipped, got %q", req.GetLocation())
 	}
 
-	wantChanged := []string{"name", "bio", "location"}
+	wantChanged := []string{"name", "bio"}
 	if len(changed) != len(wantChanged) {
 		t.Fatalf("changed = %v, want %v", changed, wantChanged)
 	}
