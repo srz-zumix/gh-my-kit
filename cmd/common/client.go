@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cli/go-gh/v2/pkg/auth"
 	"github.com/cli/go-gh/v2/pkg/repository"
 	"github.com/srz-zumix/go-gh-extension/pkg/gh"
 )
@@ -14,6 +15,12 @@ import (
 // NewClientForHost creates a GitHubClient for the given host and optional token.
 // If host is empty, the current authenticated host is used.
 func NewClientForHost(host, token string) (*gh.GitHubClient, error) {
+	// Resolve the current authenticated host up front so that the token and
+	// tokenless paths target the same host. Otherwise a token combined with an
+	// empty host would fall back to github.com instead of the current host.
+	if host == "" {
+		host, _ = auth.DefaultHost()
+	}
 	repo := repository.Repository{Host: host}
 	if token != "" {
 		return gh.NewGitHubClientWithToken(repo, token)
