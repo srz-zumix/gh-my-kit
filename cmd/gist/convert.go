@@ -9,6 +9,7 @@ import (
 
 	"github.com/cli/cli/v2/pkg/cmdutil"
 	"github.com/spf13/cobra"
+	"github.com/srz-zumix/gh-my-kit/cmd/common"
 	"github.com/srz-zumix/gh-my-kit/pkg/gist"
 	"github.com/srz-zumix/go-gh-extension/pkg/gh"
 	"github.com/srz-zumix/go-gh-extension/pkg/logger"
@@ -73,11 +74,11 @@ Examples:
 			if strings.Contains(owner, "/") {
 				return fmt.Errorf("--owner must be a plain owner name without '/': %q", owner)
 			}
-			srcClient, err := newClientForHost(src, srcToken)
+			srcClient, err := common.NewClientForHost(src, srcToken)
 			if err != nil {
 				return fmt.Errorf("failed to create source client: %w", err)
 			}
-			dstClient, err := newClientForHost(dst, dstToken)
+			dstClient, err := common.NewClientForHost(dst, dstToken)
 			if err != nil {
 				return fmt.Errorf("failed to create destination client: %w", err)
 			}

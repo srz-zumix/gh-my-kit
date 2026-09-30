@@ -217,6 +217,42 @@ gh my-kit gist migrate \
 > | File content | ✅ | ✅ |
 > | Git history | ❌ | ✅ |
 
+### `profile`
+
+#### `profile copy`
+
+Copy the authenticated source user's profile fields and social accounts to the authenticated destination user.
+
+```sh
+gh my-kit profile copy [flags]
+```
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--src <host>` | `-s` | Source GitHub host (default: current host from `gh auth`) |
+| `--dst <host>` | `-d` | Destination GitHub host (default: current host from `gh auth`) |
+| `--src-token <token>` | | Token for the source GitHub host |
+| `--dst-token <token>` | | Token for the destination GitHub host |
+| `--fields <list>` | | Comma-separated fields to copy (default: all of `name,bio,company,location,blog,twitter_username,hireable,social_accounts`) |
+| `--dryrun` | `-n` | Show what would be copied without making changes |
+
+Fields left empty on the source are skipped, preserving the destination's existing value. Social accounts present on the source but missing on the destination are added; existing destination social accounts are left as-is.
+
+**Examples:**
+
+```sh
+# Copy all profile fields and social accounts to a GHES instance
+gh my-kit profile copy --dst ghes.example.com --dst-token <token>
+
+# Copy only name and bio
+gh my-kit profile copy --dst ghes.example.com --dst-token <token> --fields name,bio
+
+# Copy between two GHES instances
+gh my-kit profile copy \
+  --src src.example.com --src-token <src-token> \
+  --dst dst.example.com --dst-token <dst-token>
+```
+
 ### `completion`
 
 Generate shell completion scripts.
