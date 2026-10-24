@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/cli/cli/v2/git"
-	"github.com/google/go-github/v90/github"
+	"github.com/google/go-github/v93/github"
 	"github.com/srz-zumix/go-gh-extension/pkg/gh"
 	"github.com/srz-zumix/go-gh-extension/pkg/logger"
 )
@@ -134,8 +134,8 @@ func ConvertGistToRepo(ctx context.Context, src, dst *gh.GitHubClient, gistID st
 		}
 	}
 
-	newRepo := &github.Repository{
-		Name:     github.Ptr(repoName),
+	newRepo := &github.CreateRepositoryRequest{
+		Name:     repoName,
 		Private:  github.Ptr(private),
 		AutoInit: github.Ptr(false),
 	}
