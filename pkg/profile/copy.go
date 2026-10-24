@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/google/go-github/v90/github"
+	"github.com/google/go-github/v93/github"
 )
 
 // Field identifies a single profile attribute that can be copied.
@@ -51,12 +51,12 @@ func ParseFields(fields []string) ([]string, error) {
 	return fields, nil
 }
 
-// BuildUpdateRequest returns a *github.User containing only the fields
+// BuildUpdateRequest returns a *github.UserUpdateRequest containing only the fields
 // present in both fields and src (src fields left empty/nil are skipped so
 // the destination's existing value is preserved), along with the list of
 // field names that will actually be changed.
-func BuildUpdateRequest(src *github.User, fields []string) (*github.User, []string) {
-	req := &github.User{}
+func BuildUpdateRequest(src *github.User, fields []string) (*github.UserUpdateRequest, []string) {
+	req := &github.UserUpdateRequest{}
 	var changed []string
 	for _, f := range fields {
 		switch Field(f) {
